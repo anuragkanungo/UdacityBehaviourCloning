@@ -45,7 +45,7 @@ The model.py file contains the code for training and saving the convolution neur
 
 #### 1. An appropriate model architecture has been employed
 
-I tried using LeNet at first, but after training even upto 20 epochs the car wasn't sticking into the lane even 20% of the time (sometimes i took control in autonomous mode and steered the car into lane manually to see if there are only specific places it fails but 80% of the time car wasn't staying in the lane.)
+I tried using LeNet at first, but after training even upto 20 epochs the car wasn't sticking into the lane even 20% of the time (sometimes i took control in autonomous mode and steered the car into lane manually to see if there are only specific places it fails but 80% of the time car wasn't staying in the lane, going into water or dirt road.)
 
 Therefore, I decided to use Nvidia Autonomous Car Transfer learning model from there project paper (https://arxiv.org/pdf/1604.07316v1.pdf) . On the dataset generate (mentioned below) I trained for 20 epochs and the model did very well to stay in lane (although it was making some mistakes which i made while recording the laps and that told me that model is possibly overfitting). The model architecture is discussed in model architecture and training stargey section.
 
@@ -67,23 +67,47 @@ Training data generated using driving into simulator was chosen to keep the vehi
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+Even before using the Nvidia's model, some data preprocessing was required. Therefore I added Lambda layer to normalized the data to zero mean by dividing each pixel by 255 and subtracing 0.5. Further, I added Cropping layer to use only the area of interest for training. Although while writing this I realized, I should have cropped first and then would apply used Lambda normalization, might have saved few cpu cycles. Further I started using the Nvidia model architecture and in the end an Output layer was added to have single output as steering angle.
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
-
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
-
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+This model did well as i was able to complete the track, though slightly going over the yellow line at couple of places and i realized that while recording data, i made those mistakes as well, that hinted me model is overfitting, therefore I added a dropout layer with probablity 0.5 after Flattening. After that the car was able to drive through track one successufly multiple times without leaving the road.
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture consisted of a convolution neural network with the following layers:
+
+```
+Layer            Output Shape                 Action           
+-----------------------------------------------------------------
+
+Lambda           (None, 160, 320, 3)          Normalization
+-----------------------------------------------------------------
+Cropping2D       (None, 90, 320, 3)           Cropping
+-----------------------------------------------------------------
+Convolution2D    (None, 43, 158, 24)          Relu Activation
+-----------------------------------------------------------------
+Convolution2D    (None, 20, 77, 36)           Relu Activation
+-----------------------------------------------------------------
+Convolution2D    (None, 8, 37, 48)            Relu Activation
+-----------------------------------------------------------------
+Convolution2D    (None, 6, 35, 64)            Relu Activation
+-----------------------------------------------------------------
+Convolution2D    (None, 4, 33, 64)            Relu Activation  
+-----------------------------------------------------------------
+Flatten          (None, 8448)                 Flatten
+-----------------------------------------------------------------
+Dropout          (None, 8448)                 Dropout with 0.5 
+-----------------------------------------------------------------
+Dense            (None, 100)                  Dense 100
+-----------------------------------------------------------------
+Dense            (None, 50)                   Dense 50
+-----------------------------------------------------------------
+Dense            (None, 10)                   Dense 10
+-----------------------------------------------------------------
+Dense            (None, 1)                    Dense 1
+
+-----------------------------------------------------------------
+```
+
 
 #### 3. Creation of the Training Set & Training Process
 
